@@ -74,7 +74,7 @@ class FFDataset(data.Dataset):
         return len(self.train_list)
 
 
-def get_dataset(name = 'train', size=299, root=r'/content/gdrive/MyDrive/ff_train', frame_num=300, augment=True):
+def get_dataset(name = 'train', size=299, root=r'D:\Detection\data\ff_train', frame_num=300, augment=True):
     root = os.path.join(root, name)
     fake_root = os.path.join(root,'fake')
 
@@ -147,7 +147,7 @@ def evaluate(model, data_path, mode='valid'):
 __all__ = ['setup_logger']
 
 #DEFAULT_WORK_DIR = 'output' #all files created during the working of the program are saved here
-DEFAULT_WORK_DIR = "/content/F3net/F3net/logs"
+DEFAULT_WORK_DIR = "../ckpts"
 def setup_logger(work_dir=None, logfile_name='log.txt', logger_name='logger'):
     """
     设置日志：
