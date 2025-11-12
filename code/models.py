@@ -129,7 +129,7 @@ class F3Net(nn.Module):
     Supports loading pretrained Xception weights for the backbone
     """
 
-    def __init__(self, num_classes=1, img_width=299, img_height=299, mode='Mix',device=None,pretrained_path=r'/content/gdrive/MyDrive/Models/F3net/model-data/xception.pth'):
+    def __init__(self, num_classes=1, img_width=299, img_height=299, mode='Mix',device=None,pretrained_path=r'../xception.pth'):
         super(F3Net, self).__init__()
         self.num_classes = num_classes
 
@@ -302,7 +302,7 @@ def multi_DCT(feature_map, patch_size=8, stride=4):
     return dct_spectrum
 
 
-def get_xcep_state_dict(pretrained_path='/content/gdrive/MyDrive/Models/F3net/model-data/xception.pth'):
+def get_xcep_state_dict(pretrained_path='../xception.pth'):
     # load Xception
     state_dict = torch.load(pretrained_path)
     for name, weights in state_dict.items():
