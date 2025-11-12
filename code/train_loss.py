@@ -10,15 +10,17 @@ import numpy as np
 import random
 from tqdm import tqdm
 
+
 # --- 配置 (省略) ---
 dataset_path = r"D:\Detection\data\ff_train"
-pretrained_path = '/content/gdrive/MyDrive/Models/F3net/model-data/xception.pth'
+#dataset_path = r"D:\Detection\data\test"
+pretrained_path = '../xception.pth'
 batch_size = 16
 gpu_ids = [0]
 max_epoch = 5
 loss_freq = 50
 mode = 'Mix'
-ckpt_dir = '/content/F3net/F3net/logs'
+ckpt_dir = '../ckpts'
 checkpoint_file = os.path.join(ckpt_dir, 'latest_checkpoint.pth')
 log_file = 'context.log'
 max_print_steps = 10
@@ -26,7 +28,7 @@ max_print_steps = 10
 if __name__ == '__main__':
     # 初始化 logger、模型 (省略)
     os.makedirs(ckpt_dir, exist_ok=True)
-    logger = setup_logger("/content/F3net/F3net/logs", log_file, 'logger')
+    logger = setup_logger("../ckpts", log_file, 'logger')
     # 假设 Trainer 类中已经初始化了 self.scheduler
     model = Trainer(gpu_ids, mode, pretrained_path)
     best_val = 0.
@@ -78,16 +80,30 @@ if __name__ == '__main__':
             model.total_steps += 1  # 确保总步数更新
             step_count += 1
 
-            # (Loss 打印和日志记录部分保持不变)
+            """# (Loss 打印和日志记录部分保持不变)
             if step_count <= max_print_steps:
-                print(f"[DEBUG] Step {step_count}, loss: {loss.item():.4f}")
-                logger.info(f'Step {step_count}, loss: {loss.item():.4f}')
+                #print(f"[DEBUG] Step {step_count}, loss: {loss.item():.4f}")
+                logger.info(f'Step {step_count}, loss: {loss.item():.4f}')"""
+
+
+            if step_count <= max_print_steps:
+                print(f"[DEBUG] Step {step_count}, total_loss: {loss['total_loss']:.4f}, "
+                      f"cls_loss: {loss['cls_loss']:.4f}, fcl_loss: {loss['fcl_loss']:.4f}")
+                logger.info(f"Step {step_count}, total_loss: {loss['total_loss']:.4f}")
+            """ 
             if step_count % loss_freq == 0:
                 pbar.set_postfix(loss=loss.item())
-                logger.info(f'Epoch {epoch}, Step {step_count}, loss: {loss.item():.4f}')
+                logger.info(f'Epoch {epoch}, Step {step_count}, loss: {loss.item():.4f}')"""
+
+            if step_count % loss_freq == 0:
+                pbar.set_postfix(loss=loss['total_loss'])
+                logger.info(f'Epoch {epoch}, Step {step_count}, total_loss: {loss["total_loss"]:.4f}, '
+                            f'cls_loss: {loss["cls_loss"]:.4f}, fcl_loss: {loss["fcl_loss"]:.4f}')
 
         # 每个epoch结束时记录最终loss
-        logger.info(f'Epoch {epoch} finished, final loss: {loss.item():.4f}')
+        #logger.info(f'Epoch {epoch} finished, final loss: {loss.item():.4f}')
+        logger.info(f'Epoch {epoch} finished, final loss: total_loss={loss["total_loss"]:.4f}, '
+                    f'cls_loss={loss["cls_loss"]:.4f}, fcl_loss={loss["fcl_loss"]:.4f}')
 
         # --- 验证集评估 ---
         model.model.eval()
