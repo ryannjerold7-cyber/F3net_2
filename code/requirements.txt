@@ -1,0 +1,7 @@
+streamlit
+torch
+torchvision
+pillow
+#!pip install numpy scikit-learn Pillow gradio email-validator
+#cd /kaggle/input/f3nett/third-eye-main/code
+#!python train.py
