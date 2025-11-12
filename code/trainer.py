@@ -109,12 +109,23 @@ class Trainer():
         fea, out = self.model(x)
         return out
 
-    def __call__(self, x):
-        """直接返回模型的分类输出"""
+    """def __call__(self, x):
+        直接返回模型的分类输出
         with torch.no_grad():
             output = self.model(x)
             if isinstance(output, tuple):
                 return output[-1]  # 最后一个为分类输出
+            return output
+"""
+    def __call__(self, x):
+        """返回模型的分类输出 Tensor，用于 evaluate"""
+        self.model.eval()
+        with torch.no_grad():
+            output = self.model(x)
+            if isinstance(output, dict):
+                return output['output']  # 返回分类输出 tensor
+            elif isinstance(output, tuple):
+                return output[-1]  # 兼容 tuple 输出
             return output
 
     # =====================
@@ -123,24 +134,29 @@ class Trainer():
     def optimize_weight(self):
         outputs = self.model(self.input)
 
-        # 模型输出格式分支
-        if isinstance(outputs, tuple) and len(outputs) == 2:
-            # 仅返回特征与分类输出
+        # 如果模型返回 dict
+        if isinstance(outputs, dict):
+            stu_cla = outputs['output']
+            # 如果需要频谱一致性
+            F_low, F_mid, F_high = outputs['spatial_feats']
+            R_low, R_mid, R_high = outputs['freq_feats']
+
+            # 分类损失
+            self.loss_cla = self.loss_fn(stu_cla.squeeze(1), self.label)
+            # FCL损失
+            self.loss_fcl_val = self.loss_fcl(F_low, R_low, F_mid, R_mid, F_high, R_high)
+            self.loss = self.loss_cla + self.lambda_fcl * self.loss_fcl_val
+
+        # 如果模型返回 tuple (兼容旧版本)
+        elif isinstance(outputs, tuple) and len(outputs) == 2:
             stu_fea, stu_cla = outputs
             self.loss_cla = self.loss_fn(stu_cla.squeeze(1), self.label)
             self.loss = self.loss_cla
 
         elif isinstance(outputs, tuple) and len(outputs) == 3:
-            # 返回多尺度频谱与残差信息 + 分类
             (F_low, R_low, F_mid, R_mid, F_high, R_high), stu_fea, stu_cla = outputs
-
-            # 分类损失
             self.loss_cla = self.loss_fn(stu_cla.squeeze(1), self.label)
-
-            # 频谱一致性损失
             self.loss_fcl_val = self.loss_fcl(F_low, R_low, F_mid, R_mid, F_high, R_high)
-
-            # 总损失
             self.loss = self.loss_cla + self.lambda_fcl * self.loss_fcl_val
 
         else:
